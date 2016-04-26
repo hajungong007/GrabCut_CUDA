@@ -1,6 +1,6 @@
 #ifdef __cplusplus
 #if __cplusplus
-extern "C"{
+//extern "C"{
 #endif
 #endif 
 #include "opencv2/highgui/highgui.hpp"
@@ -28,6 +28,6 @@ void grabCut_lockFGBGmodel_multiCombine( InputArray _colorImg, InputArray _imgDi
                                                             W(pixel, pixel) = W_based_on_color^betaC + W_based_on_diff^betadiff */
 #ifdef __cplusplus
 #if __cplusplus
-}
+//}
 #endif
 #endif 
