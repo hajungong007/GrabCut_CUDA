@@ -4,27 +4,14 @@
 #include <iostream>
 #include "grabcut.h"
 #include "funcs.h"
+#include "fastcode.h"
 
 using namespace std;
 using namespace cv;
 
 void maskShow(const Mat& mask, Mat& mask4show)
 {
-	mask4show.create( mask.size(), CV_8UC1);
-	for (int j = 0; j < mask.rows; j++)
-	{
-		for (int i = 0; i < mask.cols; i++)
-		{			
-			if (mask.at<uchar>(j,i) == GC_BGD)
-				mask4show.at<uchar>(j,i) = 0;
-			if (mask.at<uchar>(j,i) == GC_PR_BGD)
-				mask4show.at<uchar>(j,i) = 1;
-			if (mask.at<uchar>(j,i) == GC_PR_FGD)
-				mask4show.at<uchar>(j,i) = 2;
-			if (mask.at<uchar>(j,i) == GC_FGD)
-				mask4show.at<uchar>(j,i) = 3;
-		}
-	}
+    fastcode::maskShowCaller(mask, mask4show, cuda::Stream());
 }
 
 void segResultShow(const Mat& img, const Mat& mask, Mat& segResult)
@@ -33,9 +20,9 @@ void segResultShow(const Mat& img, const Mat& mask, Mat& segResult)
 	for (int j = 0; j < img.rows; j++)
 	{
 		for (int i = 0; i < img.cols; i++)
-		{			
+		{
 			if (mask.at<uchar>(j,i) == GC_BGD || mask.at<uchar>(j,i) == GC_PR_BGD  )
-				segResult.at<Vec3b>(j,i) = segResult.at<Vec3b>(j,i) / 4;				
+				segResult.at<Vec3b>(j,i) = segResult.at<Vec3b>(j,i) / 4;
 		}
 	}
 }
@@ -46,7 +33,7 @@ void maskBinary(const Mat& mask, Mat& maskResult)
 	for (int j = 0; j < mask.rows; j++)
 	{
 		for (int i = 0; i < mask.cols; i++)
-		{			
+		{
 			if (mask.at<uchar>(j,i) == GC_FGD || mask.at<uchar>(j,i) == GC_PR_FGD  )
 				maskResult.at<uchar>(j,i) = 255;
 			else
@@ -72,7 +59,7 @@ string convertInt2(int number)
 	return ss;//return a string with the contents of the stream
 }
 
-void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC, 
+void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
 	const Mat& bgdModelC, const Mat& fgdModelC, const Mat& bgdModelDiff, const Mat& fgdModelDiff,
 	double alphaC, double alphadiff, double betaC, double betadiff)
 {
@@ -108,11 +95,11 @@ void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
 	erode( maskFG, maskFG, element );
 	erode( maskBG, maskBG, element );
 	maskC.create( colorImg.size(), CV_8UC1);
-	maskC.setTo( GC_BGD ); 
+	maskC.setTo( GC_BGD );
 	(maskC(rect)).setTo( Scalar(GC_PR_FGD) );
 	for (int j = rect1y; j < rect2y; j++)
 		for (int i = rect1x; i < rect2x; i++)
-		{			
+		{
 			if (maskFG.at<uchar>(j,i) == 1)
 				maskC.at<uchar>(j,i) = GC_FGD;
 			if (maskBG.at<uchar>(j,i) == 1)
@@ -120,11 +107,11 @@ void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
 		}
 
 	// segmentation from sample
-	grabCut_lockFGBGmodel_linearCombine( colorImg, imgDiff, maskC, 
-		bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff, 
+	grabCut_lockFGBGmodel_linearCombine( colorImg, imgDiff, maskC,
+		bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff,
 		alphaC, alphadiff, betaC, betadiff);
-	//grabCut_lockFGBGmodel_multiCombine( colorImg, imgDiff, maskC, 
-	//	bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff, 
+	//grabCut_lockFGBGmodel_multiCombine( colorImg, imgDiff, maskC,
+	//	bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff,
 	//	alphaC, alphadiff, betaC, betadiff);
 
 
