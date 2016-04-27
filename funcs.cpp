@@ -11,7 +11,7 @@ using namespace cv;
 
 void maskShow(const Mat& mask, Mat& mask4show)
 {
-    fastcode::maskShowCaller(mask, mask4show, cuda::Stream());
+    fastcode::maskShowCaller(mask, mask4show);
 }
 
 void segResultShow(const Mat& img, const Mat& mask, Mat& segResult)

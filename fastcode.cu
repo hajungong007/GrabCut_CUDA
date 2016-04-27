@@ -26,7 +26,7 @@ namespace fastcode{
         }
     }
 
-    void maskShowCaller(Mat & mask, Mat & mask4show, cuda::Stream stream){
+    void maskShowCaller(const Mat & mask, Mat & mask4show){
         const cuda::GpuMat gmask = mask.getGpuMat();
         mask4show.create(mask.size(), CV_8UC1);
         cuda::GpuMat gmask4show = mask4show.getGpuMat();
@@ -36,8 +36,6 @@ namespace fastcode{
                         static_cast<double>(DimBlock.x))), 
                         static_cast<int>(std::ceil(mask.size().height / 
                         static_cast<double>(DimBlock.y))));
-        cudaStream_t localstream = cuda::StreamAccessor::getStream(stream);
-        maskShowKernel<<<DimGrid, DimBlock, 0, localstream>>>(gmask, gmask4show);
-        cudaSafeCall(cudaGetLastError());
+        maskShowKernel<<<DimGrid, DimBlock>>>(gmask, gmask4show);
     }
 }

@@ -6,5 +6,5 @@
 using namespace cv;
 
 namespace fastcode{
-    void maskShowCaller(Mat & mask, Mat & mask4show, cuda::Stream stream);
+    void maskShowCaller(const Mat & mask, Mat & mask4show);
 }
