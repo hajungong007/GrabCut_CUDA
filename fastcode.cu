@@ -79,4 +79,32 @@ namespace fastcode{
         segResultShowKernel<<<DimGrid, DimBlock>>>(gmask, gsegResult);
         gsegResult.download(segResult);
     }
+    // cuda implementation of maskBinary
+    __global__ void maskBinaryKernel(const PtrStepSz<uchar> mask, PtrStepSz<uchar> maskResult){
+        int x = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.y * blockDim.y + threadIdx.y;
+        if(x < mask.rows && y < mask.cols){
+            if(mask(x,y) == GC_FGD || mask(x,y) == GC_PR_FGD){
+                 maskResult(x,y) = 255;
+            }else{
+                 maskResult(x,y) = 0;
+            }
+        }
+    }
+
+    void maskBinaryCaller(const Mat & mask, Mat & maskResult){
+        GpuMat gmask;
+        gmask.upload(mask);
+        maskResult.create(mask.size(), CV_8UC1);
+        GpuMat gmaskResult;
+        gmaskResult.upload(maskResult);
+
+        dim3 DimBlock(32,32);
+        dim3 DimGrid(static_cast<int>(std::ceil(mask.size().height /
+                        static_cast<double>(DimBlock.x))), 
+                        static_cast<int>(std::ceil(mask.size().width / 
+                        static_cast<double>(DimBlock.y))));
+        maskBinaryKernel<<<DimGrid, DimBlock>>>(gmask, gmaskResult);
+        gmaskResult.download(maskResult);
+    }
 }

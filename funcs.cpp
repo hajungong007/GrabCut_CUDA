@@ -21,17 +21,7 @@ void segResultShow(const Mat& img, const Mat& mask, Mat& segResult)
 
 void maskBinary(const Mat& mask, Mat& maskResult)
 {
-	maskResult.create( mask.size(), CV_8UC1);
-	for (int j = 0; j < mask.rows; j++)
-	{
-		for (int i = 0; i < mask.cols; i++)
-		{
-			if (mask.at<uchar>(j,i) == GC_FGD || mask.at<uchar>(j,i) == GC_PR_FGD  )
-				maskResult.at<uchar>(j,i) = 255;
-			else
-				maskResult.at<uchar>(j,i) = 0;
-		}
-	}
+    fastcode::maskBinaryCaller(mask, maskResult);
 }
 
 string convertInt(int number)
