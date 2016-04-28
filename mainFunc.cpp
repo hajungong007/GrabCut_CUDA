@@ -12,8 +12,7 @@ using namespace cv;
 
 int main()
 {
-    time_t starttime;
-    time(&starttime);
+    clock_t starttime = clock();
 	// sample of  color img and imgDiff
 	string colorImgSample_filename = "samples/color.png";
 	Mat colorImgSample = imread(colorImgSample_filename, CV_LOAD_IMAGE_COLOR);
@@ -64,10 +63,9 @@ int main()
 //		maskBinary(mask, mask4show);
 //		imwrite("results/"+convertInt(i)+" 0_1_0_1_mask"+".png", mask4show);
 	}
-    time_t endtime;
-    time(&endtime);
+    clock_t endtime = clock();
 
-    cout<< "Time used: "<< difftime(endtime, starttime) << " seconds\n";
+    cout<< "Time used: "<< endtime- starttime << " milliseconds\n";
 
 	waitKey();
 	return 0;
