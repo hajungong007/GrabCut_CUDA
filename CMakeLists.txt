@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 2.8)
+project( TryOne )
+set(OpenCV_DIR /home/xiaojie/opencv/opencv-3.1.0/build)
+find_package( OpenCV REQUIRED )
+#set(OpenCV_INCLUDE_DIRS /home/xiaojie/opencv/opencv-3.1.0/lxj/include/opencv;/home/xiaojie/opencv/opencv-3.1.0/lxj/include)
+include_directories( ${OpenCV_INCLUDE_DIRS};/usr/local/cuda/include;/usr/local/include;/home/xiaojie/grabcut)
+message("include: ${OpenCV_INCLUDE_DIRS}")
+# add called functions
+add_executable( TryOne mainFunc.cpp grabcut.cpp funcs.cpp)
+target_link_libraries( TryOne ${OpenCV_LIBS} )
+message("libs: ${OpenCV_LIBS}")
