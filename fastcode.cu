@@ -20,7 +20,7 @@ namespace fastcode{
     __global__ void maskShowKernel(const PtrStepSz<uchar> mask, PtrStepSz<uchar> mask4show){
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
-        if(x < mask.cols && y < mask.rows){
+        if(x < mask.rows && y < mask.cols){
             switch(mask(x,y)){
                 case GC_BGD:
                     mask4show(x,y) = 0;
@@ -45,21 +45,21 @@ namespace fastcode{
         gmask4show.upload(mask4show);
 
         dim3 DimBlock(16,16);
-        dim3 DimGrid(static_cast<int>(std::ceil(mask.size().width /
+        dim3 DimGrid(static_cast<int>(std::ceil(mask.size().height /
                         static_cast<double>(DimBlock.x))), 
-                        static_cast<int>(std::ceil(mask.size().height / 
+                        static_cast<int>(std::ceil(mask.size().width / 
                         static_cast<double>(DimBlock.y))));
         maskShowKernel<<<DimGrid, DimBlock>>>(gmask, gmask4show);
         gmask4show.download(mask4show);
     }
 
     // cuda implementation of segResultShow
-    __global__ void segResultShowKernel(const PtrStepSz<uchar> mask, PtrStepSz<Vec3b> segResult){
+    __global__ void segResultShowKernel(const PtrStepSz<uchar> mask, PtrStepSz<uchar> segResult){
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
-        if(x < mask.cols && y < mask.rows){
-            if(mask(i,j) == GC_BGD || mask(i, j) == GC_PR_BGD){
-                 segResult(i,j) = segResult(i,j)/4;
+        if(x < mask.rows && y < mask.cols){
+            if(mask(x,y) == GC_BGD || mask(x,y) == GC_PR_BGD){
+                 segResult(x,y) = segResult(x,y) / 4;
             }
         }
     }
@@ -71,10 +71,10 @@ namespace fastcode{
         GpuMat gsegResult;
         gsegResult.upload(segResult);
 
-        dim3 DimBlock(16,16);
-        dim3 DimGrid(static_cast<int>(std::ceil(mask.size().width /
+        dim3 DimBlock(32,32);
+        dim3 DimGrid(static_cast<int>(std::ceil(mask.size().height /
                         static_cast<double>(DimBlock.x))), 
-                        static_cast<int>(std::ceil(mask.size().height / 
+                        static_cast<int>(std::ceil(mask.size().width / 
                         static_cast<double>(DimBlock.y))));
         segResultShowKernel<<<DimGrid, DimBlock>>>(gmask, gsegResult);
         gsegResult.download(segResult);
