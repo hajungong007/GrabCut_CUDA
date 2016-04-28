@@ -107,4 +107,81 @@ namespace fastcode{
         maskBinaryKernel<<<DimGrid, DimBlock>>>(gmask, gmaskResult);
         gmaskResult.download(maskResult);
     }
+    // cuda implementation of calcNWeights
+
+    __global__ void calcNWeightsKernel(const uchar * img, PtrStepSz<double> left, PtrStepSz<double> upleft, PtrStepSz<double> up, PtrStepSz<double> upright, double beta, double gamma, int rows, int cols){
+        int x = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.y * blockDim.y + threadIdx.y;
+        if(x < rows && y < cols){
+            int basexy = 3 * (y * cols + x);
+            int basexy_1 = 3 * ((y-1) * cols + x);
+            int basex_1y_1 = basexy_1-3;
+            int basex_1y = basexy-3;
+            int basex_1y1 = basex_1y + 3 * cols;
+            if(y-1>=0){
+                temp = ((double)img[basexy]-(double)img[basexy_1]) * ((double)img[basexy]-(double)img[basexy_1]) + 
+                        ((double)img[basexy+1]-(double)img[basexy_1+1]) * ((double)img[basexy+1]-(double)img[basexy_1+1]) + 
+                        ((double)img[basexy+2]-(double)img[basexy_1+2]) * ((double)img[basexy+2]-(double)img[basexy_1+2]);
+                left(x,y) = gamma * exp(-beta * temp);
+            }else{
+                left(x,y) = 0;
+            }
+            if(x-1>=0 && y-1>=0){
+                temp = ((double)img[basexy]-(double)img[basex_1y_1]) * ((double)img[basexy]-(double)img[basex_1y_1]) + 
+                        ((double)img[basexy+1]-(double)img[basex_1y_1+1]) * ((double)img[basexy+1]-(double)img[basex_1y_1+1]) + 
+                        ((double)img[basexy+2]-(double)img[basex_1y_1+2]) * ((double)img[basexy+2]-(double)img[basex_1y_1+2]);
+                upleft(x,y) = gamma / 1.414 * exp(-beta * temp);
+            }else{
+                upleft(x,y) = 0;
+            }
+            if(x-1>=0){
+                temp = ((double)img[basexy]-(double)img[basex_1y]) * ((double)img[basexy]-(double)img[basex_1y]) + 
+                        ((double)img[basexy+1]-(double)img[basex_1y+1]) * ((double)img[basexy+1]-(double)img[basex_1y+1]) + 
+                        ((double)img[basexy+2]-(double)img[basex_1y+2]) * ((double)img[basexy+2]-(double)img[basex_1y+2]);
+                up(x,y) = gamma * exp(-beta * temp);
+            }else{
+                up(x,y) = 0;
+            }
+            if(y+1<=cols && x-1>=0){
+                temp = ((double)img[basexy]-(double)img[basex_1y1]) * ((double)img[basexy]-(double)img[basex_1y1]) + 
+                        ((double)img[basexy+1]-(double)img[basex_1y1+1]) * ((double)img[basexy+1]-(double)img[basex_1y1+1]) + 
+                        ((double)img[basexy+2]-(double)img[basex_1y1+2]) * ((double)img[basexy+2]-(double)img[basex_1y1+2]);
+                upright(x,y) = gamma / 1.414 * exp(-beta * temp);
+            }else{
+                upright(x,y) = 0;
+            }
+        }
+    }
+
+
+    void calcNWeightsCaller(const Mat& img, Mat& leftW, Mat& upleftW, Mat& upW, Mat& uprightW, double beta, double gamma){
+        int rows = img.rows;
+        int cols = img.cols;
+        GpuMat gleftW, gupleftW, gupW, guprightW;
+        leftW.create(rows, cols, CV_64FC1);
+        upleftW.create(rows, cols, CV_64FC1);
+        upW.create(rows, cols, CV_64FC1);
+        uprightW.create(rows, cols, CV_64FC1);
+        gleftW.upload(leftW);
+        gupleftW.upload(upleftW);
+        gupW.upload(upW);
+        guprightW.upload(uprightW);
+
+        uchar * ptr;
+        cudaMalloc((void **)&ptr, rows*cols*3*sizeof(uchar));
+        cudaMemcpy(ptr, img.data, rows*cols*3*sizeof(uchar));
+        dim3 DimBlock(32,32);
+        dim3 DimGrid(static_cast<int>(std::ceil(img.size().height /
+                        static_cast<double>(DimBlock.x))), 
+                        static_cast<int>(std::ceil(img.size().width / 
+                        static_cast<double>(DimBlock.y))));
+
+        calcNWeightsKernel<<<DimGrid, DimBlock>>>(ptr, gleftW, gupleftW, gupW, guprightW, beta, gamma, rows, cols);
+        cudaFree(ptr);
+        gleftW.download(leftW);
+        gupleftW.download(upleftW);
+        gupW.download(upW);
+        guprightW.download(uprightW);
+
+    }
 }
