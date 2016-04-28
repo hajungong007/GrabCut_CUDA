@@ -169,8 +169,8 @@ namespace fastcode{
         guprightW.upload(uprightW);
 
         uchar * ptr;
-        cudaMalloc((void **)&ptr, rows*cols*3*sizeof(uchar));
-        cudaMemcpy(ptr, img.data, rows*cols*3*sizeof(uchar), cudaMemcpyHostToDevice);
+        cudaMalloc((void **)&ptr, rows*cols*sizeof(uchar3));
+        cudaMemcpy(ptr, img.data, rows*cols*sizeof(uchar3), cudaMemcpyHostToDevice);
         dim3 DimBlock(32,32);
         dim3 DimGrid(static_cast<int>(std::ceil(img.size().height /
                         static_cast<double>(DimBlock.x))), 
