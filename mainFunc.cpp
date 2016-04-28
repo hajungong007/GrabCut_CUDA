@@ -5,13 +5,15 @@
 #include "funcs.h"
 #include <vector>
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 using namespace cv;
 
 int main()
 {
-    double starttime = wtime();
+    time_t starttime;
+    time(&starttime);
 	// sample of  color img and imgDiff
 	string colorImgSample_filename = "samples/color.png";
 	Mat colorImgSample = imread(colorImgSample_filename, CV_LOAD_IMAGE_COLOR);
@@ -62,9 +64,10 @@ int main()
 //		maskBinary(mask, mask4show);
 //		imwrite("results/"+convertInt(i)+" 0_1_0_1_mask"+".png", mask4show);
 	}
-    double endtime = wtime();
+    time_t endtime;
+    time(&endtime);
 
-    cout<< "Time used: "<< (starttime-endtime) << "milliseconds\n";
+    cout<< "Time used: "<< difftime(starttime, endtime) << " seconds\n";
 
 	waitKey();
 	return 0;
