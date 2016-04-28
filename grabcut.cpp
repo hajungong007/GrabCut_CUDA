@@ -45,7 +45,6 @@
 #include <vector>
 
 #include "grabcut.h"
-#include "fastcode.h"
 
 using namespace std;
 using namespace cv;
@@ -230,47 +229,46 @@ static double calcBeta( const Mat& img )
  */
 static void calcNWeights( const Mat& img, Mat& leftW, Mat& upleftW, Mat& upW, Mat& uprightW, double beta, double gamma )
 {
-    fastcode::calcNWeightsCaller(img, leftW, upleftW, upW, uprightW, beta, gamma);
-//    const double gammaDivSqrt2 = gamma / std::sqrt(2.0f);
-//    leftW.create( img.rows, img.cols, CV_64FC1 );
-//    upleftW.create( img.rows, img.cols, CV_64FC1 );
-//    upW.create( img.rows, img.cols, CV_64FC1 );
-//    uprightW.create( img.rows, img.cols, CV_64FC1 );
-//    for( int y = 0; y < img.rows; y++ )
-//    {
-//        for( int x = 0; x < img.cols; x++ )
-//        {
-//            Vec3d color = img.at<Vec3b>(y,x);
-//            if( x-1>=0 ) // left
-//            {
-//                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y,x-1);
-//                leftW.at<double>(y,x) = gamma * exp(-beta*diff.dot(diff));
-//            }
-//            else
-//                leftW.at<double>(y,x) = 0;
-//            if( x-1>=0 && y-1>=0 ) // upleft
-//            {
-//                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y-1,x-1);
-//                upleftW.at<double>(y,x) = gammaDivSqrt2 * exp(-beta*diff.dot(diff));
-//            }
-//            else
-//                upleftW.at<double>(y,x) = 0;
-//            if( y-1>=0 ) // up
-//            {
-//                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y-1,x);
-//                upW.at<double>(y,x) = gamma * exp(-beta*diff.dot(diff));
-//            }
-//            else
-//                upW.at<double>(y,x) = 0;
-//            if( x+1<img.cols && y-1>=0 ) // upright
-//            {
-//                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y-1,x+1);
-//                uprightW.at<double>(y,x) = gammaDivSqrt2 * exp(-beta*diff.dot(diff));
-//            }
-//            else
-//                uprightW.at<double>(y,x) = 0;
-//        }
-//    }
+    const double gammaDivSqrt2 = gamma / std::sqrt(2.0f);
+    leftW.create( img.rows, img.cols, CV_64FC1 );
+    upleftW.create( img.rows, img.cols, CV_64FC1 );
+    upW.create( img.rows, img.cols, CV_64FC1 );
+    uprightW.create( img.rows, img.cols, CV_64FC1 );
+    for( int y = 0; y < img.rows; y++ )
+    {
+        for( int x = 0; x < img.cols; x++ )
+        {
+            Vec3d color = img.at<Vec3b>(y,x);
+            if( x-1>=0 ) // left
+            {
+                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y,x-1);
+                leftW.at<double>(y,x) = gamma * exp(-beta*diff.dot(diff));
+            }
+            else
+                leftW.at<double>(y,x) = 0;
+            if( x-1>=0 && y-1>=0 ) // upleft
+            {
+                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y-1,x-1);
+                upleftW.at<double>(y,x) = gammaDivSqrt2 * exp(-beta*diff.dot(diff));
+            }
+            else
+                upleftW.at<double>(y,x) = 0;
+            if( y-1>=0 ) // up
+            {
+                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y-1,x);
+                upW.at<double>(y,x) = gamma * exp(-beta*diff.dot(diff));
+            }
+            else
+                upW.at<double>(y,x) = 0;
+            if( x+1<img.cols && y-1>=0 ) // upright
+            {
+                Vec3d diff = color - (Vec3d)img.at<Vec3b>(y-1,x+1);
+                uprightW.at<double>(y,x) = gammaDivSqrt2 * exp(-beta*diff.dot(diff));
+            }
+            else
+                uprightW.at<double>(y,x) = 0;
+        }
+    }
 }
 
 
