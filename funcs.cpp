@@ -92,9 +92,6 @@ void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
 	grabCut_lockFGBGmodel_linearCombine( colorImg, imgDiff, maskC,
 		bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff,
 		alphaC, alphadiff, betaC, betadiff);
-	//grabCut_lockFGBGmodel_multiCombine( colorImg, imgDiff, maskC,
-	//	bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff,
-	//	alphaC, alphadiff, betaC, betadiff);
 
 
 }

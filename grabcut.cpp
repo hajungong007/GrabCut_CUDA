@@ -64,7 +64,6 @@ public:
     GMM( Mat& _model );
     double operator()( const Vec3d color ) const;
     double operator()( int ci, const Vec3d color ) const;
-    int whichComponent( const Vec3d color ) const;
 
     void initLearning();
     void addSample( int ci, const Vec3d color );
@@ -131,23 +130,6 @@ double GMM::operator()( int ci, const Vec3d color ) const
         res = 1.0f/sqrt(covDeterms[ci]) * exp(-0.5f*mult);
     }
     return res;
-}
-
-int GMM::whichComponent( const Vec3d color ) const
-{
-    int k = 0;
-    double max = 0;
-
-    for( int ci = 0; ci < componentsCount; ci++ )
-    {
-        double p = (*this)( ci, color );
-        if( p > max )
-        {
-            k = ci;
-            max = p;
-        }
-    }
-    return k;
 }
 
 void GMM::initLearning()
@@ -318,84 +300,8 @@ static void calcNWeights( const Mat& img, Mat& leftW, Mat& upleftW, Mat& upW, Ma
     }
 }
 
-/*
-  Check size, type and element values of mask matrix.
- */
-static void checkMask( const Mat& img, const Mat& mask )
-{
-    if( mask.empty() )
-        CV_Error( CV_StsBadArg, "mask is empty" );
-    if( mask.type() != CV_8UC1 )
-        CV_Error( CV_StsBadArg, "mask must have CV_8UC1 type" );
-    if( mask.cols != img.cols || mask.rows != img.rows )
-        CV_Error( CV_StsBadArg, "mask must have as many rows and cols as img" );
-    for( int y = 0; y < mask.rows; y++ )
-    {
-        for( int x = 0; x < mask.cols; x++ )
-        {
-            uchar val = mask.at<uchar>(y,x);
-            if( val!=GC_BGD && val!=GC_FGD && val!=GC_PR_BGD && val!=GC_PR_FGD )
-                CV_Error( CV_StsBadArg, "mask element value must be equel"
-                    "GC_BGD or GC_FGD or GC_PR_BGD or GC_PR_FGD" );
-        }
-    }
-}
 
-/*
-  Initialize mask using rectangular.
-*/
-static void initMaskWithRect( Mat& mask, Size imgSize, Rect rect )
-{
-    mask.create( imgSize, CV_8UC1 );
-    mask.setTo( GC_BGD );
 
-    rect.x = max(0, rect.x);
-    rect.y = max(0, rect.y);
-    rect.width = min(rect.width, imgSize.width-rect.x);
-    rect.height = min(rect.height, imgSize.height-rect.y);
-
-    (mask(rect)).setTo( Scalar(GC_PR_FGD) );
-}
-
-/*
-  Initialize GMM background and foreground models using kmeans algorithm.
-*/
-static void initGMMs( const Mat& img, const Mat& mask, GMM& bgdGMM, GMM& fgdGMM )
-{
-    const int kMeansItCount = 10;
-    const int kMeansType = KMEANS_PP_CENTERS;
-
-    Mat bgdLabels, fgdLabels;
-    vector<Vec3f> bgdSamples, fgdSamples;
-    Point p;
-    for( p.y = 0; p.y < img.rows; p.y++ )
-    {
-        for( p.x = 0; p.x < img.cols; p.x++ )
-        {
-            if( mask.at<uchar>(p) == GC_BGD || mask.at<uchar>(p) == GC_PR_BGD )
-                bgdSamples.push_back( (Vec3f)img.at<Vec3b>(p) );
-            else // GC_FGD | GC_PR_FGD
-                fgdSamples.push_back( (Vec3f)img.at<Vec3b>(p) );
-        }
-    }
-    CV_Assert( !bgdSamples.empty() && !fgdSamples.empty() );
-    Mat _bgdSamples( (int)bgdSamples.size(), 3, CV_32FC1, &bgdSamples[0][0] );
-    kmeans( _bgdSamples, GMM::componentsCount, bgdLabels,
-            TermCriteria( CV_TERMCRIT_ITER, kMeansItCount, 0.0), 0, kMeansType );
-    Mat _fgdSamples( (int)fgdSamples.size(), 3, CV_32FC1, &fgdSamples[0][0] );
-    kmeans( _fgdSamples, GMM::componentsCount, fgdLabels,
-            TermCriteria( CV_TERMCRIT_ITER, kMeansItCount, 0.0), 0, kMeansType );
-
-    bgdGMM.initLearning();
-    for( int i = 0; i < (int)bgdSamples.size(); i++ )
-        bgdGMM.addSample( bgdLabels.at<int>(i,0), bgdSamples[i] );
-    bgdGMM.endLearning();
-
-    fgdGMM.initLearning();
-    for( int i = 0; i < (int)fgdSamples.size(); i++ )
-        fgdGMM.addSample( fgdLabels.at<int>(i,0), fgdSamples[i] );
-    fgdGMM.endLearning();
-}
 
 void learnGMMsFromSample( const Mat& img, const Mat& mask, Mat& bgdGMMPara, Mat& fgdGMMPara )
 {
@@ -436,116 +342,11 @@ void learnGMMsFromSample( const Mat& img, const Mat& mask, Mat& bgdGMMPara, Mat&
     fgdGMM.endLearning();
 }
 
-/*
-  Assign GMMs components for each pixel.
-*/
-static void assignGMMsComponents( const Mat& img, const Mat& mask, const GMM& bgdGMM, const GMM& fgdGMM, Mat& compIdxs )
-{
-    Point p;
-    for( p.y = 0; p.y < img.rows; p.y++ )
-    {
-        for( p.x = 0; p.x < img.cols; p.x++ )
-        {
-            Vec3d color = img.at<Vec3b>(p);
-            compIdxs.at<int>(p) = mask.at<uchar>(p) == GC_BGD || mask.at<uchar>(p) == GC_PR_BGD ?
-                bgdGMM.whichComponent(color) : fgdGMM.whichComponent(color);
-        }
-    }
-}
 
-/*
-  Learn GMMs parameters.
-*/
-static void learnGMMs( const Mat& img, const Mat& mask, const Mat& compIdxs, GMM& bgdGMM, GMM& fgdGMM )
-{
-    bgdGMM.initLearning();
-    fgdGMM.initLearning();
-    Point p;
-    for( int ci = 0; ci < GMM::componentsCount; ci++ )
-    {
-        for( p.y = 0; p.y < img.rows; p.y++ )
-        {
-            for( p.x = 0; p.x < img.cols; p.x++ )
-            {
-                if( compIdxs.at<int>(p) == ci )
-                {
-                    if( mask.at<uchar>(p) == GC_BGD || mask.at<uchar>(p) == GC_PR_BGD )
-                        bgdGMM.addSample( ci, img.at<Vec3b>(p) );
-                    else
-                        fgdGMM.addSample( ci, img.at<Vec3b>(p) );
-                }
-            }
-        }
-    }
-    bgdGMM.endLearning();
-    fgdGMM.endLearning();
-}
 
-/*
-  Construct GCGraph
-*/
-static void constructGCGraph( const Mat& img, const Mat& mask, const GMM& bgdGMM, const GMM& fgdGMM, double lambda,
-                       const Mat& leftW, const Mat& upleftW, const Mat& upW, const Mat& uprightW,
-                       GCGraph<double>& graph )
-{
-    int vtxCount = img.cols*img.rows,
-        edgeCount = 2*(4*img.cols*img.rows - 3*(img.cols + img.rows) + 2);
-    graph.create(vtxCount, edgeCount);
-    Point p;
-    for( p.y = 0; p.y < img.rows; p.y++ )
-    {
-        for( p.x = 0; p.x < img.cols; p.x++)
-        {
-            // add node
-            int vtxIdx = graph.addVtx();
-            Vec3b color = img.at<Vec3b>(p);
 
-            // set t-weights
-            double fromSource, toSink;
-            if( mask.at<uchar>(p) == GC_PR_BGD || mask.at<uchar>(p) == GC_PR_FGD )
-            {
-                fromSource = -log( bgdGMM(color) );
-                toSink = -log( fgdGMM(color) );
-            }
-            else if( mask.at<uchar>(p) == GC_BGD )
-            {
-                fromSource = 0;
-                toSink = lambda;
-            }
-            else // GC_FGD
-            {
-                fromSource = lambda;
-                toSink = 0;
-            }
-            graph.addTermWeights( vtxIdx, fromSource, toSink);
-
-            // set n-weights
-            if( p.x>0 )
-            {
-                double w = leftW.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-1, w, w );
-            }
-            if( p.x>0 && p.y>0 )
-            {
-                double w = upleftW.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-img.cols-1, w, w );
-            }
-            if( p.y>0 )
-            {
-                double w = upW.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-img.cols, w, w );
-            }
-            if( p.x<img.cols-1 && p.y>0 )
-            {
-                double w = uprightW.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-img.cols+1, w, w );
-            }
-        }
-    }
-}
-
-static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& diffImg, const Mat& mask, 
-		const GMM& bgdGMM_C, const GMM& fgdGMM_C, double lambda, const Mat& leftW_C, const Mat& upleftW_C, const Mat& upW_C, const Mat& uprightW_C, 
+static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& diffImg, const Mat& mask,
+		const GMM& bgdGMM_C, const GMM& fgdGMM_C, double lambda, const Mat& leftW_C, const Mat& upleftW_C, const Mat& upW_C, const Mat& uprightW_C,
 		const GMM& bgdGMM_diff, const GMM& fgdGMM_diff, const Mat& leftW_diff, const Mat& upleftW_diff, const Mat& upW_diff, const Mat& uprightW_diff,
 		double alphaC, double alphadiff, double betaC, double betadiff,
 		GCGraph<double>& graph )
@@ -618,79 +419,6 @@ static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& diffI
     }
 }
 
-static void constructGCGraph_multiCombine(const Mat& colorImg, const Mat& diffImg, const Mat& mask, 
-		const GMM& bgdGMM_C, const GMM& fgdGMM_C, double lambda, const Mat& leftW_C, const Mat& upleftW_C, const Mat& upW_C, const Mat& uprightW_C, 
-		const GMM& bgdGMM_diff, const GMM& fgdGMM_diff, const Mat& leftW_diff, const Mat& upleftW_diff, const Mat& upW_diff, const Mat& uprightW_diff,
-		double alphaC, double alphadiff, double betaC, double betadiff,
-		GCGraph<double>& graph )
-{
-	int vtxCount = colorImg.cols*colorImg.rows,
-        edgeCount = 2*(4*colorImg.cols*colorImg.rows - 3*(colorImg.cols + colorImg.rows) + 2);
-    graph.create(vtxCount, edgeCount);
-    Point p;
-    for( p.y = 0; p.y < colorImg.rows; p.y++ )
-    {
-        for( p.x = 0; p.x < colorImg.cols; p.x++)
-        {
-            // add node
-            int vtxIdx = graph.addVtx();
-            Vec3b color = colorImg.at<Vec3b>(p);
-			Vec3b cDiff = diffImg.at<Vec3b>(p);
-
-            // set t-weights
-            double fromSource_C, toSink_C;
-			double fromSource_diff, toSink_diff;
-            if( mask.at<uchar>(p) == GC_PR_BGD || mask.at<uchar>(p) == GC_PR_FGD )
-            {
-                fromSource_C = -log( bgdGMM_C(color) );
-                toSink_C = -log( fgdGMM_C(color) );
-				fromSource_diff = -log( bgdGMM_diff(cDiff) );
-                toSink_diff = -log( fgdGMM_diff(cDiff) );
-            }
-            else if( mask.at<uchar>(p) == GC_BGD )
-            {
-                fromSource_C = 0;
-                toSink_C = lambda;
-				fromSource_diff = 0;
-                toSink_diff = lambda;
-            }
-            else // GC_FGD
-            {
-                fromSource_C = lambda;
-                toSink_C = 0;
-				fromSource_diff = lambda;
-                toSink_diff = 0;
-            }
-            graph.addTermWeights( vtxIdx, fromSource_C*alphaC + fromSource_diff*alphadiff, toSink_C*alphaC + toSink_diff*alphadiff);
-
-            // set n-weights
-            if( p.x>0 )
-            {
-                double wC = leftW_C.at<double>(p);
-				double wdiff = leftW_diff.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-1, pow(wC, betaC)*pow(wdiff, betadiff), pow(wC, betaC)*pow(wdiff, betadiff) );
-            }
-            if( p.x>0 && p.y>0 )
-            {
-                double wC = upleftW_C.at<double>(p);
-				double wdiff = upleftW_diff.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-colorImg.cols-1, pow(wC, betaC)*pow(wdiff, betadiff), pow(wC, betaC)*pow(wdiff, betadiff) );
-            }
-            if( p.y>0 )
-            {
-                double wC = upW_C.at<double>(p);
-				double wdiff = upW_diff.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-colorImg.cols, pow(wC, betaC)*pow(wdiff, betadiff), pow(wC, betaC)*pow(wdiff, betadiff) );
-            }
-            if( p.x<colorImg.cols-1 && p.y>0 )
-            {
-                double wC = uprightW_C.at<double>(p);
-				double wdiff = uprightW_diff.at<double>(p);
-                graph.addEdges( vtxIdx, vtxIdx-colorImg.cols+1, pow(wC, betaC)*pow(wdiff, betadiff), pow(wC, betaC)*pow(wdiff, betadiff) );
-            }
-        }
-    }
-}
 
 /*
   Estimate segmentation using MaxFlow algorithm
@@ -715,57 +443,9 @@ static void estimateSegmentation( GCGraph<double>& graph, Mat& mask )
 }
 
 
-void grabCut_origin( InputArray _img, InputOutputArray _mask, Rect rect,
-                  InputOutputArray _bgdModel, InputOutputArray _fgdModel,
-                  int iterCount, int mode )
-{
-    Mat img = _img.getMat();
-    Mat& mask = _mask.getMatRef();
-    Mat& bgdModel = _bgdModel.getMatRef();
-    Mat& fgdModel = _fgdModel.getMatRef();
 
-    if( img.empty() )
-        CV_Error( CV_StsBadArg, "image is empty" );
-    if( img.type() != CV_8UC3 )
-        CV_Error( CV_StsBadArg, "image mush have CV_8UC3 type" );
-
-    GMM bgdGMM( bgdModel ), fgdGMM( fgdModel );
-    Mat compIdxs( img.size(), CV_32SC1 );
-
-    if( mode == GC_INIT_WITH_RECT || mode == GC_INIT_WITH_MASK )
-    {
-        if( mode == GC_INIT_WITH_RECT )
-            initMaskWithRect( mask, img.size(), rect );
-        else // flag == GC_INIT_WITH_MASK
-            checkMask( img, mask );
-        initGMMs( img, mask, bgdGMM, fgdGMM );
-    }
-
-    if( iterCount <= 0)
-        return;
-
-    if( mode == GC_EVAL )
-        checkMask( img, mask );
-
-    const double gamma = 50;
-    const double lambda = 9*gamma;
-    const double beta = calcBeta( img );
-
-    Mat leftW, upleftW, upW, uprightW;
-    calcNWeights( img, leftW, upleftW, upW, uprightW, beta, gamma );
-
-    for( int i = 0; i < iterCount; i++ )
-    {
-        GCGraph<double> graph;
-        assignGMMsComponents( img, mask, bgdGMM, fgdGMM, compIdxs );
-        learnGMMs( img, mask, compIdxs, bgdGMM, fgdGMM );
-        constructGCGraph(img, mask, bgdGMM, fgdGMM, lambda, leftW, upleftW, upW, uprightW, graph );
-        estimateSegmentation( graph, mask );
-    }
-}
-
-void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC, 
-										 InputArray _bgdModelC, InputArray _fgdModelC, InputArray _bgdModelDiff, InputArray _fgdModelDiff, 
+void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC,
+										 InputArray _bgdModelC, InputArray _fgdModelC, InputArray _bgdModelDiff, InputArray _fgdModelDiff,
 										 double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	Mat colorImg = _colorImg.getMat();
@@ -790,40 +470,7 @@ void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgD
     calcNWeights( diffImg, leftW_diff, upleftW_diff, upW_diff, uprightW_diff, beta_diff, gamma );
 
     GCGraph<double> graph;
-    constructGCGraph_linearCombine(colorImg, diffImg, mask, bgdGMM_C, fgdGMM_C, lambda, leftW_C, upleftW_C, upW_C, uprightW_C, 
-		bgdGMM_diff, fgdGMM_diff, leftW_diff, upleftW_diff, upW_diff, uprightW_diff,
-		alphaC, alphadiff, betaC, betadiff,
-		graph );
-    estimateSegmentation( graph, mask );
-}
-
-void grabCut_lockFGBGmodel_multiCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC, 
-										 InputArray _bgdModelC, InputArray _fgdModelC, InputArray _bgdModelDiff, InputArray _fgdModelDiff, 
-										 double alphaC, double alphadiff, double betaC, double betadiff)
-{
-	Mat colorImg = _colorImg.getMat();
-	Mat diffImg = _imgDiff.getMat();
-    Mat& mask = _maskC.getMatRef();
-    Mat bgdModel_C = _bgdModelC.getMat();
-    Mat fgdModel_C = _fgdModelC.getMat();
-	Mat bgdModel_diff = _bgdModelDiff.getMat();
-    Mat fgdModel_diff = _fgdModelDiff.getMat();
-
-	GMM bgdGMM_C( bgdModel_C ), fgdGMM_C( fgdModel_C );
-	GMM bgdGMM_diff( bgdModel_diff ), fgdGMM_diff( fgdModel_diff );
-
-	const double gamma = 50;
-    const double lambda = 9*gamma;
-    const double beta_C = calcBeta( colorImg );
-	const double beta_diff = calcBeta( diffImg );
-
-    Mat leftW_C, upleftW_C, upW_C, uprightW_C;
-    calcNWeights( colorImg, leftW_C, upleftW_C, upW_C, uprightW_C, beta_C, gamma );
-	Mat leftW_diff, upleftW_diff, upW_diff, uprightW_diff;
-    calcNWeights( diffImg, leftW_diff, upleftW_diff, upW_diff, uprightW_diff, beta_diff, gamma );
-
-    GCGraph<double> graph;
-    constructGCGraph_multiCombine(colorImg, diffImg, mask, bgdGMM_C, fgdGMM_C, lambda, leftW_C, upleftW_C, upW_C, uprightW_C, 
+    constructGCGraph_linearCombine(colorImg, diffImg, mask, bgdGMM_C, fgdGMM_C, lambda, leftW_C, upleftW_C, upW_C, uprightW_C,
 		bgdGMM_diff, fgdGMM_diff, leftW_diff, upleftW_diff, upW_diff, uprightW_diff,
 		alphaC, alphadiff, betaC, betadiff,
 		graph );
