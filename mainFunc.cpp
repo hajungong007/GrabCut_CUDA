@@ -5,35 +5,38 @@
 #include "funcs.h"
 #include <vector>
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 using namespace cv;
 
 int main()
-{		
-	// sample of  color img and imgDiff	
+{
+    time_t starttime;
+    time(&starttime);
+	// sample of  color img and imgDiff
 	string colorImgSample_filename = "samples/color.png";
 	Mat colorImgSample = imread(colorImgSample_filename, CV_LOAD_IMAGE_COLOR);
 	string imgDiffSample_filename = "samples/diff.png";
-	Mat imgDiffSample = imread(imgDiffSample_filename, CV_LOAD_IMAGE_COLOR);	
+	Mat imgDiffSample = imread(imgDiffSample_filename, CV_LOAD_IMAGE_COLOR);
 	string maskImgSample_filename =  "samples/mask.png";
-	Mat maskSample = imread(maskImgSample_filename, CV_LOAD_IMAGE_GRAYSCALE );	
+	Mat maskSample = imread(maskImgSample_filename, CV_LOAD_IMAGE_GRAYSCALE );
 
 	// learn bgdGMM & fgdGMM
-	Mat bgdModelC, fgdModelC;	
+	Mat bgdModelC, fgdModelC;
 	Mat bgdModelDiff, fgdModelDiff;
 	learnGMMsFromSample( colorImgSample, maskSample, bgdModelC, fgdModelC );
 	learnGMMsFromSample( imgDiffSample, maskSample, bgdModelDiff, fgdModelDiff );
 
-	string bgColorImg_filename = "data/" + convertInt(101) + ".png"; // NOTICE: This is background image!	
+	string bgColorImg_filename = "data/" + convertInt(101) + ".png"; // NOTICE: This is background image!
 	Mat bgColorImg = imread(bgColorImg_filename, CV_LOAD_IMAGE_COLOR);
 	Mat bgColorImgs[3];
 	split(bgColorImg, bgColorImgs);
 	Mat colorImgs[3];
 	Mat resultCs[3];
-	for (int i = 201; i < 824; i = i+1 ) // NOTICE: These are the frames which need to be segmented
+	for (int i = 201; i < 250; i = i+1 ) // NOTICE: These are the frames which need to be segmented
 	{
-		string colorImg_filename = "data/" + convertInt(i) + ".png";			
+		string colorImg_filename = "data/" + convertInt(i) + ".png";
 		Mat colorImg = imread(colorImg_filename, CV_LOAD_IMAGE_COLOR);
 		split(colorImg, colorImgs);
 		Mat mask;
@@ -68,6 +71,10 @@ int main()
 //		maskBinary(mask, mask4show);
 //		imwrite("results/"+convertInt(i)+" 0_1_0_1_mask"+".png", mask4show);
 	}
+    time_t endtime;
+    time(&endtime);
+
+    cout<<"Time used :"<<difftime(endtime, starttime)<<" seconds\n";
 
 	waitKey();
 	return 0;
