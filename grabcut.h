@@ -1,3 +1,6 @@
+#ifndef GRABCUT_H
+#define GRABCUT_H
+
 #ifdef __cplusplus
 #if __cplusplus
 //extern "C"{
@@ -52,4 +55,6 @@ void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgD
 #if __cplusplus
 //}
 #endif
+#endif
+
 #endif
