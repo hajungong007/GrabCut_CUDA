@@ -76,7 +76,7 @@ int main()
 	}
     clock_t endtime = clock();
 
-    cout<<"Time used :"<<endtime, starttime<<" milliseconds\n";
+    cout<<"Time used :"<<endtime- starttime<<" milliseconds\n";
 
 	waitKey();
 	return 0;
