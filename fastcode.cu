@@ -16,6 +16,7 @@ using namespace std;
 // reference: http://stackoverflow.com/questions/24613637/custom-kernel-gpumat-with-float
 
 namespace fastcode{
+    // cuda implementation of maskShow
     __global__ void maskShowKernel(const PtrStepSz<uchar> mask, PtrStepSz<uchar> mask4show){
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -38,10 +39,10 @@ namespace fastcode{
 
     void maskShowCaller(const Mat & mask, Mat & mask4show){
         GpuMat gmask;
-	gmask.upload(mask);
+        gmask.upload(mask);
         mask4show.create(mask.size(), CV_8UC1);
         GpuMat gmask4show;
-	gmask4show.upload(mask4show);
+        gmask4show.upload(mask4show);
 
         dim3 DimBlock(16,16);
         dim3 DimGrid(static_cast<int>(std::ceil(mask.size().width /
@@ -49,6 +50,33 @@ namespace fastcode{
                         static_cast<int>(std::ceil(mask.size().height / 
                         static_cast<double>(DimBlock.y))));
         maskShowKernel<<<DimGrid, DimBlock>>>(gmask, gmask4show);
-	gmask4show.download(mask4show);
+        gmask4show.download(mask4show);
+    }
+
+    // cuda implementation of segResultShow
+    __global__ void segResultShowKernel(const PtrStepSz<uchar> mask, PtrStepSz<Vec3b> segResult){
+        int x = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.y * blockDim.y + threadIdx.y;
+        if(x < mask.cols && y < mask.rows){
+            if(mask(i,j) == GC_BGD || mask(i, j) == GC_PR_BGD){
+                 segResult(i,j) = segResult(i,j)/4;
+            }
+        }
+    }
+
+    void segResultShowCaller(const Mat & img, const Mat & mask, Mat & segResult){
+        GpuMat gmask;
+        gmask.upload(mask);
+        img.copyTo(segResult);
+        GpuMat gsegResult;
+        gsegResult.upload(segResult);
+
+        dim3 DimBlock(16,16);
+        dim3 DimGrid(static_cast<int>(std::ceil(mask.size().width /
+                        static_cast<double>(DimBlock.x))), 
+                        static_cast<int>(std::ceil(mask.size().height / 
+                        static_cast<double>(DimBlock.y))));
+        segResultShowKernel<<<DimGrid, DimBlock>>>(gmask, gsegResult);
+        gsegResult.download(segResult);
     }
 }

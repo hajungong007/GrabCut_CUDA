@@ -16,15 +16,7 @@ void maskShow(const Mat& mask, Mat& mask4show)
 
 void segResultShow(const Mat& img, const Mat& mask, Mat& segResult)
 {
-	img.copyTo(segResult);
-	for (int j = 0; j < img.rows; j++)
-	{
-		for (int i = 0; i < img.cols; i++)
-		{
-			if (mask.at<uchar>(j,i) == GC_BGD || mask.at<uchar>(j,i) == GC_PR_BGD  )
-				segResult.at<Vec3b>(j,i) = segResult.at<Vec3b>(j,i) / 4;
-		}
-	}
+    fastcode::segResultShowCaller(img, mask, segResult);
 }
 
 void maskBinary(const Mat& mask, Mat& maskResult)
