@@ -44,6 +44,8 @@
 #include <limits>
 #include <vector>
 
+#include "grabcut.h"
+
 using namespace std;
 using namespace cv;
 
@@ -53,37 +55,6 @@ This is implementation of image segmentation algorithm GrabCut described in
 Carsten Rother, Vladimir Kolmogorov, Andrew Blake.
  */
 
-/*
- GMM - Gaussian Mixture Model
-*/
-class GMM
-{
-public:
-    static const int componentsCount = 5;
-
-    GMM( Mat& _model );
-    double operator()( const Vec3d color ) const;
-    double operator()( int ci, const Vec3d color ) const;
-
-    void initLearning();
-    void addSample( int ci, const Vec3d color );
-    void endLearning();
-
-private:
-    void calcInverseCovAndDeterm( int ci );
-    Mat model;
-    double* coefs;
-    double* mean;
-    double* cov;
-
-    double inverseCovs[componentsCount][3][3];
-    double covDeterms[componentsCount];
-
-    double sums[componentsCount][3];
-    double prods[componentsCount][3][3];
-    int sampleCounts[componentsCount];
-    int totalSampleCount;
-};
 
 GMM::GMM( Mat& _model )
 {

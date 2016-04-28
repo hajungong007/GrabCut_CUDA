@@ -7,6 +7,7 @@ extern "C"{
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <iostream>
+#include "grabcut.h"
 
 using namespace std;
 using namespace cv;
