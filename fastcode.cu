@@ -118,6 +118,7 @@ namespace fastcode{
             int basex_1y_1 = basexy_1-3;
             int basex_1y = basexy-3;
             int basex_1y1 = basex_1y + 3 * cols;
+            double temp = 0.0;
             if(y-1>=0){
                 temp = ((double)img[basexy]-(double)img[basexy_1]) * ((double)img[basexy]-(double)img[basexy_1]) + 
                         ((double)img[basexy+1]-(double)img[basexy_1+1]) * ((double)img[basexy+1]-(double)img[basexy_1+1]) + 
