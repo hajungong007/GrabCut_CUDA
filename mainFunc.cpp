@@ -67,7 +67,7 @@ int main()
     time_t endtime;
     time(&endtime);
 
-    cout<< "Time used: "<< difftime(starttime, endtime) << " seconds\n";
+    cout<< "Time used: "<< difftime(endtime, starttime) << " seconds\n";
 
 	waitKey();
 	return 0;
