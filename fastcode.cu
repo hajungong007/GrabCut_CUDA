@@ -111,7 +111,7 @@ namespace fastcode{
     __global__ void thresholdKernel(const PtrStepSz<uchar> img1, const PtrStepSz<uchar> img2, const PtrStepSz<uchar> img3, PtrStepSz<uchar> maskFG, PtrStepSz<uchar> maskBG){
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
-        if(x < mask.rows && y < mask.cols){
+        if(x < img1.rows && y < img1.cols){
             if(img1(x,y)>30||img2(x,y)>30||img3(x,y)>30) maskFG(x,y) = 1;
             if(img1(x,y)<10&&img2(x,y)<10&&img3(x,y)<10) maskBG(x,y) = 1;
         }
