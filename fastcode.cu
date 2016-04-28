@@ -109,44 +109,44 @@ namespace fastcode{
     }
     // cuda implementation of calcNWeights
 
-    __global__ void calcNWeightsKernel(const uchar * img, PtrStepSz<double> left, PtrStepSz<double> upleft, PtrStepSz<double> up, PtrStepSz<double> upright, double beta, double gamma, int rows, int cols){
+    __global__ void calcNWeightsKernel(const uchar3 * img, PtrStepSz<double> left, PtrStepSz<double> upleft, PtrStepSz<double> up, PtrStepSz<double> upright, double beta, double gamma, int rows, int cols){
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
         if(x < rows && y < cols){
-            int basexy = 3 * (y * cols + x);
-            int basexy_1 = 3 * ((y-1) * cols + x);
-            int basex_1y_1 = basexy_1-3;
-            int basex_1y = basexy-3;
-            int basex_1y1 = basex_1y + 3 * cols;
+            int basexy = y * cols + x;
+            int basexy_1 = (y-1) * cols + x;
+            int basex_1y_1 = basexy_1-1;
+            int basex_1y = basexy-1;
+            int basex_1y1 = basex_1y + cols;
             double temp = 0.0;
             if(y-1>=0){
-                temp = ((double)img[basexy]-(double)img[basexy_1]) * ((double)img[basexy]-(double)img[basexy_1]) + 
-                        ((double)img[basexy+1]-(double)img[basexy_1+1]) * ((double)img[basexy+1]-(double)img[basexy_1+1]) + 
-                        ((double)img[basexy+2]-(double)img[basexy_1+2]) * ((double)img[basexy+2]-(double)img[basexy_1+2]);
+                temp = ((double)img[basexy].x-(double)img[basexy_1].x) * ((double)img[basexy].x-(double)img[basexy_1].x) + 
+                        ((double)img[basexy].y-(double)img[basexy_1].y) * ((double)img[basexy].y-(double)img[basexy_1].y) + 
+                        ((double)img[basexy].z-(double)img[basexy_1].z) * ((double)img[basexy].z-(double)img[basexy_1].z);
                 left(x,y) = gamma * exp(-beta * temp);
             }else{
                 left(x,y) = 0;
             }
             if(x-1>=0 && y-1>=0){
-                temp = ((double)img[basexy]-(double)img[basex_1y_1]) * ((double)img[basexy]-(double)img[basex_1y_1]) + 
-                        ((double)img[basexy+1]-(double)img[basex_1y_1+1]) * ((double)img[basexy+1]-(double)img[basex_1y_1+1]) + 
-                        ((double)img[basexy+2]-(double)img[basex_1y_1+2]) * ((double)img[basexy+2]-(double)img[basex_1y_1+2]);
+                temp = ((double)img[basexy].x-(double)img[basex_1y_1].x) * ((double)img[basexy].x-(double)img[basex_1y_1].x) + 
+                        ((double)img[basexy].y-(double)img[basex_1y_1].y) * ((double)img[basexy].y-(double)img[basex_1y_1].y) + 
+                        ((double)img[basexy].z-(double)img[basex_1y_1].z) * ((double)img[basexy].z-(double)img[basex_1y_1].z);
                 upleft(x,y) = gamma / 1.414 * exp(-beta * temp);
             }else{
                 upleft(x,y) = 0;
             }
             if(x-1>=0){
-                temp = ((double)img[basexy]-(double)img[basex_1y]) * ((double)img[basexy]-(double)img[basex_1y]) + 
-                        ((double)img[basexy+1]-(double)img[basex_1y+1]) * ((double)img[basexy+1]-(double)img[basex_1y+1]) + 
-                        ((double)img[basexy+2]-(double)img[basex_1y+2]) * ((double)img[basexy+2]-(double)img[basex_1y+2]);
+                temp = ((double)img[basexy].x-(double)img[basex_1y].x) * ((double)img[basexy].x-(double)img[basex_1y].x) + 
+                        ((double)img[basexy].y-(double)img[basex_1y].y) * ((double)img[basexy].y-(double)img[basex_1y].y) + 
+                        ((double)img[basexy].z-(double)img[basex_1y].z) * ((double)img[basexy].z-(double)img[basex_1y].z);
                 up(x,y) = gamma * exp(-beta * temp);
             }else{
                 up(x,y) = 0;
             }
             if(y+1<=cols && x-1>=0){
-                temp = ((double)img[basexy]-(double)img[basex_1y1]) * ((double)img[basexy]-(double)img[basex_1y1]) + 
-                        ((double)img[basexy+1]-(double)img[basex_1y1+1]) * ((double)img[basexy+1]-(double)img[basex_1y1+1]) + 
-                        ((double)img[basexy+2]-(double)img[basex_1y1+2]) * ((double)img[basexy+2]-(double)img[basex_1y1+2]);
+                temp = ((double)img[basexy].x-(double)img[basex_1y1].x) * ((double)img[basexy].x-(double)img[basex_1y1].x) + 
+                        ((double)img[basexy].y-(double)img[basex_1y1].y) * ((double)img[basexy].y-(double)img[basex_1y1].y) + 
+                        ((double)img[basexy].z-(double)img[basex_1y1].z) * ((double)img[basexy].z-(double)img[basex_1y1].z);
                 upright(x,y) = gamma / 1.414 * exp(-beta * temp);
             }else{
                 upright(x,y) = 0;
@@ -168,7 +168,7 @@ namespace fastcode{
         gupW.upload(upW);
         guprightW.upload(uprightW);
 
-        uchar * ptr;
+        uchar3 * ptr;
         cudaMalloc((void **)&ptr, rows*cols*sizeof(uchar3));
         cudaMemcpy(ptr, img.data, rows*cols*sizeof(uchar3), cudaMemcpyHostToDevice);
         dim3 DimBlock(32,32);
