@@ -170,7 +170,7 @@ namespace fastcode{
 
         uchar * ptr;
         cudaMalloc((void **)&ptr, rows*cols*3*sizeof(uchar));
-        cudaMemcpy(ptr, img.data, rows*cols*3*sizeof(uchar));
+        cudaMemcpy(ptr, img.data, rows*cols*3*sizeof(uchar), cudaMemcpyHostToDevice);
         dim3 DimBlock(32,32);
         dim3 DimGrid(static_cast<int>(std::ceil(img.size().height /
                         static_cast<double>(DimBlock.x))), 
