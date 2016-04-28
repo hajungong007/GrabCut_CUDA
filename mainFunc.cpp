@@ -30,7 +30,7 @@ int main()
 
 	string bgColorImg_filename = "data/" + convertInt(101) + ".png"; // NOTICE: This is background image!
 	Mat bgColorImg = imread(bgColorImg_filename, CV_LOAD_IMAGE_COLOR);
-	for (int i = 201; i < 300; i = i+1 ) // NOTICE: These are the frames which need to be segmented
+	for (int i = 201; i < 250; i = i+1 ) // NOTICE: These are the frames which need to be segmented
 	{
 		string colorImg_filename = "data/" + convertInt(i) + ".png";
 		Mat colorImg = imread(colorImg_filename, CV_LOAD_IMAGE_COLOR);
