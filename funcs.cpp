@@ -41,7 +41,7 @@ string convertInt2(int number)
 	return ss;//return a string with the contents of the stream
 }
 
-void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
+void segByimgDiff_color(const Mat& colorImg, const Mat& img1, const Mat& img2, const Mat& img3, const Mat& bgColorImg, Mat& maskC,
 	const GMM& bgdModelC, const GMM& fgdModelC, const GMM& bgdModelDiff, const GMM& fgdModelDiff,
 	double alphaC, double alphadiff, double betaC, double betadiff)
 {
@@ -61,18 +61,7 @@ void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
 	Mat maskFG, maskBG;
 	maskFG.create(colorImg.size(), CV_8UC1); maskFG.setTo(0);
 	maskBG.create(colorImg.size(), CV_8UC1); maskBG.setTo(0);
-	for (int j = 0; j < colorImg.rows; j++)
-		for (int i = 0; i < colorImg.cols; i++)
-		{
-			if (imgDiff.at<Vec3b>(j,i)[0] > threshold2 ||
-				imgDiff.at<Vec3b>(j,i)[1] > threshold2 ||
-				imgDiff.at<Vec3b>(j,i)[2] > threshold2)
-				maskFG.at<uchar>(j,i) = 1;
-			if (imgDiff.at<Vec3b>(j,i)[0] < threshold1 &&
-				imgDiff.at<Vec3b>(j,i)[1] < threshold1 &&
-				imgDiff.at<Vec3b>(j,i)[2] < threshold1)
-				maskBG.at<uchar>(j,i) = 1;
-		}
+    fastcode::thresholdCaller(img1, img2, img3, maskFG, maskBG);
 	Mat element = getStructuringElement( MORPH_RECT, Size( 3, 3 ), Point( 1, 1 ) );
 	erode( maskFG, maskFG, element );
 	erode( maskBG, maskBG, element );

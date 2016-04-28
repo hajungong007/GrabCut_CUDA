@@ -107,4 +107,31 @@ namespace fastcode{
         maskBinaryKernel<<<DimGrid, DimBlock>>>(gmask, gmaskResult);
         gmaskResult.download(maskResult);
     }
+    // cuda implementation of threshold BG/FG determine
+    __global__ void thresholdKernel(const PtrStepSz<uchar> img1, const PtrStepSz<uchar> img2, const PtrStepSz<uchar> img3, PtrStepSz<uchar> maskFG, PtrStepSz<uchar> maskBG){
+        int x = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.y * blockDim.y + threadIdx.y;
+        if(x < mask.rows && y < mask.cols){
+            if(img1(x,y)>30||img2(x,y)>30||img3(x,y)>30) maskFG(x,y) = 1;
+            if(img1(x,y)<10&&img2(x,y)<10&&img3(x,y)<10) maskBG(x,y) = 1;
+        }
+    }
+
+    void thresholdCaller(const Mat & img1, const Mat & img2, const Mat & img3, Mat & maskFG, Mat & maskBG){
+        GpuMat gimg1, gimg2, gimg3, gmaskFG, gmaskBG;
+        gimg1.upload(img1);
+        gimg2.upload(img2);
+        gimg3.upload(img3);
+        gmaskFG.upload(maskFG);
+        gmaskBG.upload(maskBG);
+
+        dim3 DimBlock(32,32);
+        dim3 DimGrid(static_cast<int>(std::ceil(img1.size().height /
+                        static_cast<double>(DimBlock.x))), 
+                        static_cast<int>(std::ceil(img1.size().width / 
+                        static_cast<double>(DimBlock.y))));
+        thresholdKernel<<<DimGrid, DimBlock>>>(gimg1, gimg2, gimg3, gmaskFG, gmaskBG);
+        gmaskFG.download(maskFG);
+        gmaskBG.download(maskBG);
+    }
 }

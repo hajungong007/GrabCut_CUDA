@@ -5,4 +5,5 @@ namespace fastcode{
     void maskShowCaller(const Mat & mask, Mat & mask4show);
     void segResultShowCaller(const Mat & img, const Mat & mask, Mat & segResult);
     void maskBinaryCaller(const Mat & mask, Mat & maskResult);
+    void thresholdCaller(const Mat & img1, const Mat & img2, const Mat & img3, Mat & maskFG, Mat & maskBG);
 }
