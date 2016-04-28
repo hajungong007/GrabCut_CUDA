@@ -445,19 +445,12 @@ static void estimateSegmentation( GCGraph<double>& graph, Mat& mask )
 
 
 void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC,
-										 InputArray _bgdModelC, InputArray _fgdModelC, InputArray _bgdModelDiff, InputArray _fgdModelDiff,
+										 GMM & bgdGMM_C, GMM & fgdGMM_C, GMM & bgdGMM_diff, GMM & fgdGMM_diff,
 										 double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	Mat colorImg = _colorImg.getMat();
 	Mat diffImg = _imgDiff.getMat();
     Mat& mask = _maskC.getMatRef();
-    Mat bgdModel_C = _bgdModelC.getMat();
-    Mat fgdModel_C = _fgdModelC.getMat();
-	Mat bgdModel_diff = _bgdModelDiff.getMat();
-    Mat fgdModel_diff = _fgdModelDiff.getMat();
-
-	GMM bgdGMM_C( bgdModel_C ), fgdGMM_C( fgdModel_C );
-	GMM bgdGMM_diff( bgdModel_diff ), fgdGMM_diff( fgdModel_diff );
 
 	const double gamma = 50;
     const double lambda = 9*gamma;

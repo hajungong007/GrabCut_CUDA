@@ -42,7 +42,7 @@ string convertInt2(int number)
 }
 
 void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
-	const Mat& bgdModelC, const Mat& fgdModelC, const Mat& bgdModelDiff, const Mat& fgdModelDiff,
+	const GMM& bgdModelC, const GMM& fgdModelC, const GMM& bgdModelDiff, const GMM& fgdModelDiff,
 	double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	// important parameters!!!

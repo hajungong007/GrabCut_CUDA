@@ -34,6 +34,10 @@ int main()
 	split(bgColorImg, bgColorImgs);
 	Mat colorImgs[3];
 	Mat resultCs[3];
+
+    GMM bgdGMM_C(bgdModelC), fgdGMM_C(fgdModelC);
+    GMM bgdGMM_diff(bgdModelDiff), fgdGMM_diff(fgdModelDiff);
+
 	for (int i = 201; i < 250; i = i+1 ) // NOTICE: These are the frames which need to be segmented
 	{
 		string colorImg_filename = "data/" + convertInt(i) + ".png";
@@ -42,7 +46,7 @@ int main()
 		Mat mask;
 		// begin segmentation
 		// Sample 1:
-		segByimgDiff_color(colorImg, bgColorImg, mask, bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff);
+		segByimgDiff_color(colorImg, bgColorImg, mask, bgdGMM_C, fgdGMM_C, bgdGMM_diff, fgdGMM_diff);
 		// show result
 		Mat resultC;
 		segResultShow(colorImgs[0], mask, resultCs[0]);
