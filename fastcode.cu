@@ -177,13 +177,13 @@ namespace fastcode{
                 for(int i = 0; i < 5; i++){
                     temp += prob(a,b,c,GMMonGPU, i);
                 }
-                fromSource(x,y) = temp;
+                fromSource(x,y) = -log(temp);
                 temp = 0.0;
                 GMMonGPU += 70;
                 for(int i = 0; i < 5; i++){
                     temp += prob(a,b,c,GMMonGPU, i);
                 }
-                toSink(x,y) = temp;
+                toSink(x,y) = -log(temp);
 
             }else if(mask(x,y) == GC_BGD){
                 fromSource(x,y) = 0;
