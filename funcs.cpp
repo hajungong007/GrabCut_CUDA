@@ -41,7 +41,7 @@ string convertInt2(int number)
 	return ss;//return a string with the contents of the stream
 }
 
-void segByimgDiff_color(const Mat& colorImg, const Mat& img1, Mat& img2, Mat& img3, const Mat& bgColorImg, Mat& maskC, double * GMMonGPU,
+void segByimgDiff_color(const Mat& colorImg, const Mat& img1, const Mat& img2, const Mat& img3, const Mat& bgColorImg, Mat& maskC, double * GMMonGPU,
 	double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	// important parameters!!!

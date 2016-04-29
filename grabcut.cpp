@@ -422,7 +422,7 @@ static void estimateSegmentation( GCGraph<double>& graph, Mat& mask )
 
 
 
-void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, Mat & img1, Mat& img2, Mat& img3, InputArray _imgDiff, Mat& imgd1, Mat& imgd2, Mat& imgd3, InputOutputArray _maskC, double * GMMonGPU,
+void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, const Mat & img1, const Mat& img2, const Mat& img3, InputArray _imgDiff, const Mat& imgd1, const Mat& imgd2, const Mat& imgd3, InputOutputArray _maskC, double * GMMonGPU,
 										 double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	Mat colorImg = _colorImg.getMat();
