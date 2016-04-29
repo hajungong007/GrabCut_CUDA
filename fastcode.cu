@@ -175,13 +175,13 @@ namespace fastcode{
                 int a = img1(x,y), b = img2(x,y), c = img3(x,y);
                 double temp = 0.0;
                 for(int i = 0; i < 5; i++){
-                    temp += prob(x,y,z,GMMonGPU, i);
+                    temp += prob(a,b,c,GMMonGPU, i);
                 }
                 fromSource(x,y) = temp;
                 temp = 0.0;
                 GMMonGPU += 70;
                 for(int i = 0; i < 5; i++){
-                    temp += prob(x,y,z,GMMonGPU, i);
+                    temp += prob(a,b,c,GMMonGPU, i);
                 }
                 toSink(x,y) = temp;
 
