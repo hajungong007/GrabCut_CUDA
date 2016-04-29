@@ -340,7 +340,7 @@ static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& img1,
         {
             // add node
             int vtxIdx = graph.addVtx();
-            graph.addTermWeights( vtxIdx, fromSource_C(p)*alphaC + fromSource_diff(p)*alphadiff, toSink_C(p)*alphaC + toSink_diff(p)*alphadiff);
+            graph.addTermWeights( vtxIdx, fromSource_C(p.y, p.x)*alphaC + fromSource_diff(p.y, p.x)*alphadiff, toSink_C(p.y, p.x)*alphaC + toSink_diff(p.y, p.x)*alphadiff);
 
             // set n-weights
             if( p.x>0 )
