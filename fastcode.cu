@@ -140,7 +140,7 @@ namespace fastcode{
         cudaMemcpy(dst, src, sizeof(double)*len, cudaMemcpyHostToDevice);
     }
 
-    void freeGMMonGPU(double & p){
+    void freeGMMonGPU(double * p){
         cudaFree(p);
     }
 }
