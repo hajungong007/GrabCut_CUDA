@@ -45,6 +45,7 @@
 #include <vector>
 
 #include "grabcut.h"
+#include "fastcode.h"
 
 using namespace std;
 using namespace cv;
@@ -339,34 +340,7 @@ static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& img1,
         {
             // add node
             int vtxIdx = graph.addVtx();
-            Vec3b color = colorImg.at<Vec3b>(p);
-			Vec3b cDiff = diffImg.at<Vec3b>(p);
-
-            // set t-weights
-            double fromSource_C, toSink_C;
-			double fromSource_diff, toSink_diff;
-            if( mask.at<uchar>(p) == GC_PR_BGD || mask.at<uchar>(p) == GC_PR_FGD )
-            {
-                fromSource_C = -log( bgdGMM_C(color) );
-                toSink_C = -log( fgdGMM_C(color) );
-				fromSource_diff = -log( bgdGMM_diff(cDiff) );
-                toSink_diff = -log( fgdGMM_diff(cDiff) );
-            }
-            else if( mask.at<uchar>(p) == GC_BGD )
-            {
-                fromSource_C = 0;
-                toSink_C = lambda;
-				fromSource_diff = 0;
-                toSink_diff = lambda;
-            }
-            else // GC_FGD
-            {
-                fromSource_C = lambda;
-                toSink_C = 0;
-				fromSource_diff = lambda;
-                toSink_diff = 0;
-            }
-            graph.addTermWeights( vtxIdx, fromSource_C*alphaC + fromSource_diff*alphadiff, toSink_C*alphaC + toSink_diff*alphadiff);
+            graph.addTermWeights( vtxIdx, fromSource_C(p)*alphaC + fromSource_diff(p)*alphadiff, toSink_C(p)*alphaC + toSink_diff(p)*alphadiff);
 
             // set n-weights
             if( p.x>0 )
