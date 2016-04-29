@@ -146,7 +146,25 @@ namespace fastcode{
     }
 
     // GMM in parallel
-    //__device__ void prob(double x, double y, double z, double * GMMonGPU)
+    __device__ double prob(double x, double y, double z, double * ptrGMM, int ci){
+        double res = 0;
+        double * coef = ptrGMM;
+        double * mean = ptrGMM+5;
+        double * invcov = mean + 15;
+        double * covD = invcov + 45;
+        if(coef[ci] > 0){
+            mean += 3*ci;
+            invcov += 9*ci;
+            x -= mean[0];
+            y -= mean[1];
+            z -= mean[2];
+            double mult = x*(x*invcov[0] + y*invcov[3]+ z*invcov[6]) +
+                        y*(x*invcov[1] + y*invcov[4] + z*invcov[7]) + 
+                        z*(x*invcov[2] + y*invcov[5] + z*invcov[8]);
+            res = 1.0/sqrt(covD[ci]) * exp(-0.5*mult);
+        }
+        return res;
+    }
     __global__ void GMMKernel(const PtrStepSz<uchar> img1, const PtrStepSz<uchar> img2, const PtrStepSz<uchar> img3, const PtrStepSz<uchar> mask, double * GMMonGPU,
                             PtrStepSzf fromSource, PtrStepSzf toSink, double lambda){
         
@@ -154,9 +172,19 @@ namespace fastcode{
         int y = blockIdx.y * blockDim.y + threadIdx.y;
         if(x < img1.rows && y < img1.cols){
             if(mask(x,y) == GC_PR_BGD || mask(x,y) == GC_FGD){
-                //int a = img1(x,y), b = img2(x,y), c = img3(x,y);
-                fromSource(x,y) = 0.5;
-                toSink(x,y) = 0.5;
+                int a = img1(x,y), b = img2(x,y), c = img3(x,y);
+                double temp = 0.0;
+                for(int i = 0; i < 5; i++){
+                    temp += prob(x,y,z,GMMonGPU, i);
+                }
+                fromSource(x,y) = temp;
+                temp = 0.0;
+                GMMonGPU += 70;
+                for(int i = 0; i < 5; i++){
+                    temp += prob(x,y,z,GMMonGPU, i);
+                }
+                toSink(x,y) = temp;
+
             }else if(mask(x,y) == GC_BGD){
                 fromSource(x,y) = 0;
                 toSink(x,y) = lambda;
