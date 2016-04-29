@@ -171,7 +171,7 @@ namespace fastcode{
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
         if(x < img1.rows && y < img1.cols){
-            if(mask(x,y) == GC_PR_BGD || mask(x,y) == GC_FGD){
+            if(mask(x,y) == GC_PR_BGD || mask(x,y) == GC_PR_FGD){
                 int a = img1(x,y), b = img2(x,y), c = img3(x,y);
                 double temp = 0.0;
                 for(int i = 0; i < 5; i++){

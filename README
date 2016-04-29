@@ -1,0 +1,15 @@
+To run this program, you may need to:
+
+1 modify paths in CMakeList.txt (OPENCV_DIR, include_directories)
+2 run 'cmake .'
+3 run 'make'
+4 run './grabcutMain'
+
+After this you should find the result in ./results.
+
+If there is error, there may be some possible reason:
+1 ./data or ./samples is missing
+2 you will not get any result if ./results does not exist
+3 paths in CMakeList.txt is wrong
+
+If there is any problem running this program, please contact li.dajian@foxmail.com
