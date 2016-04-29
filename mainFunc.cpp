@@ -38,7 +38,7 @@ int main()
     GMM bgdGMM_C(bgdModelC), fgdGMM_C(fgdModelC);
     GMM bgdGMM_diff(bgdModelDiff), fgdGMM_diff(fgdModelDiff);
 
-    int l = 4/*models*/*(5/*components*/*(1+3+9/*weight,mean,cov*/+9/*inverseconv*/)+5/*convdeterm*/);
+    int l = 4/*models*/*(5/*components*/*(1+3/*weight,mean*/+9/*inverseconv*/)+5/*convdeterm*/);
 
     double * gmmmodels = new double[l];
 
@@ -48,7 +48,6 @@ int main()
 
     for(i = 0; i < 5; i++) gmmmodels[cursor++] = bgdGMM_C.coefs[i];
     for(i = 0; i < 15; i++) gmmmodels[cursor++] = bgdGMM_C.mean[i];
-    for(i = 0; i < 45; i++) gmmmodels[cursor++] = bgdGMM_C.cov[i];
     for(i = 0; i < 5; i++)
         for(j = 0; j < 3; j++)
             for(k = 0; k < 3; k++)
@@ -58,7 +57,6 @@ int main()
 
     for(i = 0; i < 5; i++) gmmmodels[cursor++] = fgdGMM_C.coefs[i];
     for(i = 0; i < 15; i++) gmmmodels[cursor++] = fgdGMM_C.mean[i];
-    for(i = 0; i < 45; i++) gmmmodels[cursor++] = fgdGMM_C.cov[i];
     for(i = 0; i < 5; i++)
         for(j = 0; j < 3; j++)
             for(k = 0; k < 3; k++)
@@ -67,7 +65,6 @@ int main()
 
     for(i = 0; i < 5; i++) gmmmodels[cursor++] = bgdGMM_diff.coefs[i];
     for(i = 0; i < 15; i++) gmmmodels[cursor++] = bgdGMM_diff.mean[i];
-    for(i = 0; i < 45; i++) gmmmodels[cursor++] = bgdGMM_diff.cov[i];
     for(i = 0; i < 5; i++)
         for(j = 0; j < 3; j++)
             for(k = 0; k < 3; k++)
@@ -76,7 +73,6 @@ int main()
 
     for(i = 0; i < 5; i++) gmmmodels[cursor++] = fgdGMM_diff.coefs[i];
     for(i = 0; i < 15; i++) gmmmodels[cursor++] = fgdGMM_diff.mean[i];
-    for(i = 0; i < 45; i++) gmmmodels[cursor++] = fgdGMM_diff.cov[i];
     for(i = 0; i < 5; i++)
         for(j = 0; j < 3; j++)
             for(k = 0; k < 3; k++)

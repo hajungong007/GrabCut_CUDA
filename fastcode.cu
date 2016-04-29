@@ -146,6 +146,7 @@ namespace fastcode{
     }
 
     // GMM in parallel
+    //__device__ void prob(double x, double y, double z, double * GMMonGPU)
     __global__ void GMMKernel(const PtrStepSz<uchar> img1, const PtrStepSz<uchar> img2, const PtrStepSz<uchar> img3, const PtrStepSz<uchar> mask, double * GMMonGPU,
                             PtrStepSzf fromSource, PtrStepSzf toSink, double lambda){
         
@@ -153,7 +154,9 @@ namespace fastcode{
         int y = blockIdx.y * blockDim.y + threadIdx.y;
         if(x < img1.rows && y < img1.cols){
             if(mask(x,y) == GC_PR_BGD || mask(x,y) == GC_FGD){
-                
+                //int a = img1(x,y), b = img2(x,y), c = img3(x,y);
+                fromSource(x,y) = 0.5;
+                toSink(x,y) = 0.5;
             }else if(mask(x,y) == GC_BGD){
                 fromSource(x,y) = 0;
                 toSink(x,y) = lambda;
