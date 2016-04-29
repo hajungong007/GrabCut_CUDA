@@ -42,7 +42,7 @@ string convertInt2(int number)
 }
 
 void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
-	const GMM& bgdModelC, const GMM& fgdModelC, const GMM& bgdModelDiff, const GMM& fgdModelDiff,
+	const GMM& bgdModelC, const GMM& fgdModelC, const GMM& bgdModelDiff, const GMM& fgdModelDiff, double * GMMonGPU,
 	double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	// important parameters!!!
@@ -81,7 +81,7 @@ void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC,
 
 	// segmentation from sample
 	grabCut_lockFGBGmodel_linearCombine( colorImg, imgDiff, maskC,
-		bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff,
+		bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff, GMMonGPU,
 		alphaC, alphadiff, betaC, betadiff);
 
 

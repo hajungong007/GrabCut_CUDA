@@ -320,7 +320,7 @@ static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& diffI
 		const GMM& bgdGMM_C, const GMM& fgdGMM_C, double lambda, const Mat& leftW_C, const Mat& upleftW_C, const Mat& upW_C, const Mat& uprightW_C,
 		const GMM& bgdGMM_diff, const GMM& fgdGMM_diff, const Mat& leftW_diff, const Mat& upleftW_diff, const Mat& upW_diff, const Mat& uprightW_diff,
 		double alphaC, double alphadiff, double betaC, double betadiff,
-		GCGraph<double>& graph )
+		GCGraph<double>& graphi, double * GMMonGPU )
 {
 	int vtxCount = colorImg.cols*colorImg.rows,
         edgeCount = 2*(4*colorImg.cols*colorImg.rows - 3*(colorImg.cols + colorImg.rows) + 2);
@@ -416,7 +416,7 @@ static void estimateSegmentation( GCGraph<double>& graph, Mat& mask )
 
 
 void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC,
-										 const GMM & bgdGMM_C, const GMM & fgdGMM_C, const GMM & bgdGMM_diff, const GMM & fgdGMM_diff,
+										 const GMM & bgdGMM_C, const GMM & fgdGMM_C, const GMM & bgdGMM_diff, const GMM & fgdGMM_diff, double * GMMonGPU,
 										 double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	Mat colorImg = _colorImg.getMat();
@@ -437,7 +437,7 @@ void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgD
     constructGCGraph_linearCombine(colorImg, diffImg, mask, bgdGMM_C, fgdGMM_C, lambda, leftW_C, upleftW_C, upW_C, uprightW_C,
 		bgdGMM_diff, fgdGMM_diff, leftW_diff, upleftW_diff, upW_diff, uprightW_diff,
 		alphaC, alphadiff, betaC, betadiff,
-		graph );
+		graph, GMMonGPU );
     estimateSegmentation( graph, mask );
 }
 

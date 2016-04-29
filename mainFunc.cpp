@@ -95,7 +95,7 @@ int main()
 		Mat mask;
 		// begin segmentation
 		// Sample 1:
-		segByimgDiff_color(colorImg, bgColorImg, mask, bgdGMM_C, fgdGMM_C, bgdGMM_diff, fgdGMM_diff);
+		segByimgDiff_color(colorImg, bgColorImg, mask, bgdGMM_C, fgdGMM_C, bgdGMM_diff, fgdGMM_diff, GMMonGPU);
 		// show result
 		Mat resultC;
 		segResultShow(colorImgs[0], mask, resultCs[0]);
