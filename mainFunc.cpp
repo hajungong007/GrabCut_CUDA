@@ -3,6 +3,7 @@
 
 #include "grabcut.h"
 #include "funcs.h"
+#include "fastcode.h"
 #include <vector>
 #include <iostream>
 #include <ctime>
