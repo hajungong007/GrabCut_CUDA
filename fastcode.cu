@@ -134,4 +134,13 @@ namespace fastcode{
         gmaskFG.download(maskFG);
         gmaskBG.download(maskBG);
     }
+
+    void copyGMMtoGPU(double * src, double * & dst, size_t len){
+        cudaMalloc((void**)&dst, sizeof(double)*len);
+        cudaMemcpy(dst, src, sizeof(double)*len, cudaMemcpyHostToDevice);
+    }
+
+    void freeGMMonGPU(double & p){
+        cudaFree(p);
+    }
 }

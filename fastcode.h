@@ -6,4 +6,6 @@ namespace fastcode{
     void segResultShowCaller(const Mat & img, const Mat & mask, Mat & segResult);
     void maskBinaryCaller(const Mat & mask, Mat & maskResult);
     void thresholdCaller(const Mat & img1, const Mat & img2, const Mat & img3, Mat & maskFG, Mat & maskBG);
+    void copyGMMtoGPU(double * src, double * & dst, size_t len);
+    void freeGMMonGPU(double & p);
 }

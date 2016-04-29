@@ -84,8 +84,7 @@ int main()
 
     double * GMMonGPU;
 
-    cudaMalloc((void**)GMMonGPU, l*sizeof(double));
-    cudaMemcpy(GMMonGPU, gmmmodels, l*sizeof(double), cudaMemcpyHostToDevice);
+    fastcode::copyGMMtoGPU(gmmmodels, GMMonGPU, l);
 
 	for (i = 201; i < 250; i = i+1 ) // NOTICE: These are the frames which need to be segmented
 	{
@@ -129,7 +128,7 @@ int main()
     cout<<"Time used :"<<(double)(endtime- starttime)/CLOCKS_PER_SEC*1000.0<<" milliseconds\n";
 
     delete [] gmmmodels;
-    cudaFree(GMMonGPU);
+    fastcode::freeGMMonGPU(GMMonGPU);
 
 	waitKey();
 	return 0;
