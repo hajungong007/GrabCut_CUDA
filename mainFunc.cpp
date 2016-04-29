@@ -37,7 +37,57 @@ int main()
     GMM bgdGMM_C(bgdModelC), fgdGMM_C(fgdModelC);
     GMM bgdGMM_diff(bgdModelDiff), fgdGMM_diff(fgdModelDiff);
 
-	for (int i = 201; i < 250; i = i+1 ) // NOTICE: These are the frames which need to be segmented
+    int l = 4/*models*/*(5/*components*/*(1+3+9/*weight,mean,cov*/+9/*inverseconv*/)+5/*convdeterm*/);
+
+    double * gmmmodels = new double[l];
+
+    int cursor = 0;
+
+    int i,j,k;
+
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = bgdGMM_C.coefs[i];
+    for(i = 0; i < 15; i++) gmmmodels[cursor++] = bgdGMM_C.mean[i];
+    for(i = 0; i < 45; i++) gmmmodels[cursor++] = bgdGMM_C.cov[i];
+    for(i = 0; i < 5; i++)
+        for(j = 0; j < 3; j++)
+            for(k = 0; k < 3; k++)
+                gmmmodels[cursor++] = bgdGMM_C.inverseCovs[i][j][k];
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = bgdGMM_C.covDeterms[i];
+
+
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = fgdGMM_C.coefs[i];
+    for(i = 0; i < 15; i++) gmmmodels[cursor++] = fgdGMM_C.mean[i];
+    for(i = 0; i < 45; i++) gmmmodels[cursor++] = fgdGMM_C.cov[i];
+    for(i = 0; i < 5; i++)
+        for(j = 0; j < 3; j++)
+            for(k = 0; k < 3; k++)
+                gmmmodels[cursor++] = fgdGMM_C.inverseCovs[i][j][k];
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = fgdGMM_C.covDeterms[i];
+
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = bgdGMM_diff.coefs[i];
+    for(i = 0; i < 15; i++) gmmmodels[cursor++] = bgdGMM_diff.mean[i];
+    for(i = 0; i < 45; i++) gmmmodels[cursor++] = bgdGMM_diff.cov[i];
+    for(i = 0; i < 5; i++)
+        for(j = 0; j < 3; j++)
+            for(k = 0; k < 3; k++)
+                gmmmodels[cursor++] = bgdGMM_diff.inverseCovs[i][j][k];
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = bgdGMM_diff.covDeterms[i];
+
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = fgdGMM_diff.coefs[i];
+    for(i = 0; i < 15; i++) gmmmodels[cursor++] = fgdGMM_diff.mean[i];
+    for(i = 0; i < 45; i++) gmmmodels[cursor++] = fgdGMM_diff.cov[i];
+    for(i = 0; i < 5; i++)
+        for(j = 0; j < 3; j++)
+            for(k = 0; k < 3; k++)
+                gmmmodels[cursor++] = fgdGMM_diff.inverseCovs[i][j][k];
+    for(i = 0; i < 5; i++) gmmmodels[cursor++] = fgdGMM_diff.covDeterms[i];
+
+    double * GMMonGPU;
+
+    cudaMalloc((void**)GMMonGPU, l*sizeof(double));
+    cudaMemcpy(GMMonGPU, gmmmodels, l*sizeof(double), cudaMemcpyHostToDevice);
+
+	for (i = 201; i < 250; i = i+1 ) // NOTICE: These are the frames which need to be segmented
 	{
 		string colorImg_filename = "data/" + convertInt(i) + ".png";
 		Mat colorImg = imread(colorImg_filename, CV_LOAD_IMAGE_COLOR);
@@ -77,6 +127,9 @@ int main()
     clock_t endtime = clock();
 
     cout<<"Time used :"<<(double)(endtime- starttime)/CLOCKS_PER_SEC*1000.0<<" milliseconds\n";
+
+    delete [] gmmmodels;
+    cudaFree(GMMonGPU);
 
 	waitKey();
 	return 0;
