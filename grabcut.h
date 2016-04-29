@@ -45,7 +45,7 @@ void learnGMMsFromSample( const Mat& img, const Mat& mask, Mat& bgdGMMPara, Mat&
 /* learn GMM model parameters from samples which are given by the user */
 
 
-void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC, double * GMMonGPU,
+void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, Mat & img1, Mat& img2, Mat& img3, InputArray _imgDiff, Mat& imgd1, Mat& imgd2, Mat& imgd3, InputOutputArray _maskC, double * GMMonGPU,
 										 double alphaC, double alphadiff, double betaC, double betadiff);
 /* linearly combine two cues (imgDiff + color) by the form: P(to source, to sink) = alphaC * -log(P(color)) + alphadiff * -log(P(diff)),
                                                             W(pixel, pixel) = betaC * W_based_on_color + betadiff * W_based_on_diff */

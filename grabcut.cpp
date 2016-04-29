@@ -316,7 +316,8 @@ void learnGMMsFromSample( const Mat& img, const Mat& mask, Mat& bgdGMMPara, Mat&
 
 
 
-static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& diffImg, const Mat& mask,
+static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& img1, const Mat& img2, const Mat& img3, const Mat& diffImg,
+        const Mat& imgd1, const Mat& imgd2, const Mat& imgd3, const Mat& mask,
 		double lambda, const Mat& leftW_C, const Mat& upleftW_C, const Mat& upW_C, const Mat& uprightW_C,
 		const Mat& leftW_diff, const Mat& upleftW_diff, const Mat& upW_diff, const Mat& uprightW_diff,
 		double alphaC, double alphadiff, double betaC, double betadiff,
@@ -325,6 +326,12 @@ static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& diffI
 	int vtxCount = colorImg.cols*colorImg.rows,
         edgeCount = 2*(4*colorImg.cols*colorImg.rows - 3*(colorImg.cols + colorImg.rows) + 2);
     graph.create(vtxCount, edgeCount);
+
+    Mat fromSource_C, toSink_C, fromSource_diff, toSink_diff;
+
+    fastcode::GMMCaller(img1, img2, img3, mask, GMMonGPU, fromSource_C, toSink_C);
+    fastcode::GMMCaller(imgd1, imgd2, imgd3, mask, GMMonGPU, fromSource_diff, toSink_diff);
+
     Point p;
     for( p.y = 0; p.y < colorImg.rows; p.y++ )
     {
@@ -415,7 +422,7 @@ static void estimateSegmentation( GCGraph<double>& graph, Mat& mask )
 
 
 
-void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgDiff, InputOutputArray _maskC, double * GMMonGPU,
+void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, Mat & img1, Mat& img2, Mat& img3, InputArray _imgDiff, Mat& imgd1, Mat& imgd2, Mat& imgd3, InputOutputArray _maskC, double * GMMonGPU,
 										 double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	Mat colorImg = _colorImg.getMat();
@@ -433,7 +440,7 @@ void grabCut_lockFGBGmodel_linearCombine( InputArray _colorImg, InputArray _imgD
     calcNWeights( diffImg, leftW_diff, upleftW_diff, upW_diff, uprightW_diff, beta_diff, gamma );
 
     GCGraph<double> graph;
-    constructGCGraph_linearCombine(colorImg, diffImg, mask, lambda, leftW_C, upleftW_C, upW_C, uprightW_C,
+    constructGCGraph_linearCombine(colorImg, img1, img2, img3, diffImg, imgd1, imgd2, imgd3, mask, lambda, leftW_C, upleftW_C, upW_C, uprightW_C,
 		leftW_diff, upleftW_diff, upW_diff, uprightW_diff,
 		alphaC, alphadiff, betaC, betadiff,
 		graph, GMMonGPU );

@@ -41,7 +41,7 @@ string convertInt2(int number)
 	return ss;//return a string with the contents of the stream
 }
 
-void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC, double * GMMonGPU,
+void segByimgDiff_color(const Mat& colorImg, const Mat& img1, Mat& img2, Mat& img3, const Mat& bgColorImg, Mat& maskC, double * GMMonGPU,
 	double alphaC, double alphadiff, double betaC, double betadiff)
 {
 	// important parameters!!!
@@ -79,7 +79,7 @@ void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC, 
 		}
 
 	// segmentation from sample
-	grabCut_lockFGBGmodel_linearCombine( colorImg, imgDiff, maskC, GMMonGPU,
+	grabCut_lockFGBGmodel_linearCombine( colorImg, img1, img2, img3, imgDiff, imgDiffs[0], imgDiffs[1], imgDiffs[2], maskC, GMMonGPU,
 		alphaC, alphadiff, betaC, betadiff);
 
 

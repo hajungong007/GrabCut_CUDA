@@ -26,7 +26,7 @@ void maskBinary(const Mat& mask, Mat& maskResult);
 /* sure_FG & PR_FG ---> 255
    sure_BG & PR_BG ---> 0 */
 
-void segByimgDiff_color(const Mat& colorImg, const Mat& bgColorImg, Mat& maskC, double * GMMonGPU,
+void segByimgDiff_color(const Mat& colorImg, const Mat& img1, const Mat& img2, const Mat& img3, const Mat& bgColorImg, Mat& maskC, double * GMMonGPU,
 	double alphaC=0.5, double alphadiff=0.5, double betaC=0.5, double betadiff=0.5);
 /* segment img by combination of imgDiff cue and color cue
    input need learnt GMM models (bgdModelC, fgdModelC, bgdModelDiff, fgdModelDiff)
