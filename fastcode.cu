@@ -135,6 +135,7 @@ namespace fastcode{
         gmaskBG.download(maskBG);
     }
 
+    // allocate and free GMM space
     void copyGMMtoGPU(double * src, double * & dst, size_t len){
         cudaMalloc((void**)&dst, sizeof(double)*len);
         cudaMemcpy(dst, src, sizeof(double)*len, cudaMemcpyHostToDevice);
@@ -143,4 +144,31 @@ namespace fastcode{
     void freeGMMonGPU(double * p){
         cudaFree(p);
     }
+
+    // GMM in parallel
+    __global__ void GMMKernel(const PtrStepSz<uchar> img1, const PtrStepSz<uchar> img2, const PtrStepSz<uchar> img3, const PtrStepSz<uchar> mask, double * GMMonGPU,
+                            PtrStepSzf fromSource, PtrStepSzf toSink){
+        
+    }
+
+    void GMMCaller(const Mat& img1, const Mat& img2, const Mat& img3, const Mat& mask, double * GMMonGPU, Mat& fromSource, Mat& toSink){
+        GpuMat gimg1, gimg2, gimg3, gmask, gfromSource, gtoSink;
+        gimg1.upload(img1);
+        gimg2.upload(img2);
+        gimg3.upload(img3);
+        gmask.upload(mask);
+        fromSource.create(img1.size(), CV_32FC1);
+        toSink.create(img1.size(), CV_32FC1);
+        gfromSource.upload(fromSource);
+        gtoSink.upload(toSink);
+        dim3 DimBlock(32,32);
+        dim3 DimGrid(static_cast<int>(std::ceil(img1.size().height /
+                        static_cast<double>(DimBlock.x))), 
+                        static_cast<int>(std::ceil(img1.size().width / 
+                        static_cast<double>(DimBlock.y))));
+        GMMKernel<<<DimGrid, DimBlock>>>(gimg1, gimg2, gimg3, gmask, GMMonGPU, gfromSource, gtoSink);
+        gfromSource.download(fromSource);
+        gtoSink.download(toSink);
+    }
+
 }

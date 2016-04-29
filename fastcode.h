@@ -8,4 +8,5 @@ namespace fastcode{
     void thresholdCaller(const Mat & img1, const Mat & img2, const Mat & img3, Mat & maskFG, Mat & maskBG);
     void copyGMMtoGPU(double * src, double * & dst, size_t len);
     void freeGMMonGPU(double * p);
+    void GMMCaller(const Mat& img1, const Mat& img2, const Mat& img3, const Mat& mask, double * GMMonGPU, Mat& fromSource, Mat& toSink);
 }
