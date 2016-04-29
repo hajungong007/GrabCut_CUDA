@@ -179,7 +179,7 @@ namespace fastcode{
                         static_cast<double>(DimBlock.x))), 
                         static_cast<int>(std::ceil(img1.size().width / 
                         static_cast<double>(DimBlock.y))));
-        GMMKernel<<<DimGrid, DimBlock>>>(gimg1, gimg2, gimg3, gmask, GMMonGPU, gfromSource, gtoSink, double lambda);
+        GMMKernel<<<DimGrid, DimBlock>>>(gimg1, gimg2, gimg3, gmask, GMMonGPU, gfromSource, gtoSink, lambda);
         gfromSource.download(fromSource);
         gtoSink.download(toSink);
     }
