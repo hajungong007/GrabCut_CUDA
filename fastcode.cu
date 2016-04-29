@@ -147,11 +147,24 @@ namespace fastcode{
 
     // GMM in parallel
     __global__ void GMMKernel(const PtrStepSz<uchar> img1, const PtrStepSz<uchar> img2, const PtrStepSz<uchar> img3, const PtrStepSz<uchar> mask, double * GMMonGPU,
-                            PtrStepSzf fromSource, PtrStepSzf toSink){
+                            PtrStepSzf fromSource, PtrStepSzf toSink, double lambda){
         
+        int x = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.y * blockDim.y + threadIdx.y;
+        if(x < img1.rows && y < img1.cols){
+            if(mask(x,y) == GC_PR_BGD || mask(x,y) == GC_FGD){
+                
+            }else if(mask(x,y) == GC_BGD){
+                fromSource(x,y) = 0;
+                toSink(x,y) = lambda;
+            }else{
+                fromSource(x,y) = lambda;
+                toSink(x,y) = 0;
+            }
+        }
     }
 
-    void GMMCaller(const Mat& img1, const Mat& img2, const Mat& img3, const Mat& mask, double * GMMonGPU, Mat& fromSource, Mat& toSink){
+    void GMMCaller(const Mat& img1, const Mat& img2, const Mat& img3, const Mat& mask, double * GMMonGPU, Mat& fromSource, Mat& toSink, double lambda){
         GpuMat gimg1, gimg2, gimg3, gmask, gfromSource, gtoSink;
         gimg1.upload(img1);
         gimg2.upload(img2);
@@ -166,7 +179,7 @@ namespace fastcode{
                         static_cast<double>(DimBlock.x))), 
                         static_cast<int>(std::ceil(img1.size().width / 
                         static_cast<double>(DimBlock.y))));
-        GMMKernel<<<DimGrid, DimBlock>>>(gimg1, gimg2, gimg3, gmask, GMMonGPU, gfromSource, gtoSink);
+        GMMKernel<<<DimGrid, DimBlock>>>(gimg1, gimg2, gimg3, gmask, GMMonGPU, gfromSource, gtoSink, double lambda);
         gfromSource.download(fromSource);
         gtoSink.download(toSink);
     }

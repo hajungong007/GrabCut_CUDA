@@ -330,8 +330,8 @@ static void constructGCGraph_linearCombine(const Mat& colorImg, const Mat& img1,
 
     Mat fromSource_C, toSink_C, fromSource_diff, toSink_diff;
 
-    fastcode::GMMCaller(img1, img2, img3, mask, GMMonGPU, fromSource_C, toSink_C);
-    fastcode::GMMCaller(imgd1, imgd2, imgd3, mask, GMMonGPU, fromSource_diff, toSink_diff);
+    fastcode::GMMCaller(img1, img2, img3, mask, GMMonGPU, fromSource_C, toSink_C, lambda);
+    fastcode::GMMCaller(imgd1, imgd2, imgd3, mask, GMMonGPU, fromSource_diff, toSink_diff, lambda);
 
     Point p;
     for( p.y = 0; p.y < colorImg.rows; p.y++ )
